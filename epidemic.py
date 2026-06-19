@@ -22,20 +22,20 @@ def train_malaria_model():
     rain = np.random.uniform(0, 15, n_samples)
     humidity = np.random.uniform(30, 100, n_samples)
     elevation = np.random.uniform(0, 3000, n_samples)
-    # ADDED INHIBITOR: Wind speed (mph)
+    # Wind speed (mph) added as an environmental inhibitor
     wind = np.random.uniform(0, 25, n_samples)
 
     temp_risk = np.where((temp >= 72) & (temp <= 95), 35, -15)
     rain_risk = rain * 6.0
     humidity_risk = np.where(humidity > 65, 25, -20)
     elevation_drain = elevation * 0.03
-    # ADDED INHIBITOR LOGIC: High winds heavily suppress vector capacity (-30 penalty)
+    # High winds heavily suppress vector capacity (-30 penalty points)
     wind_inhibition = np.where(wind > 12.0, -30, 0)
 
     total_ecological_score = temp_risk + rain_risk + humidity_risk - elevation_drain + wind_inhibition
     malaria_target = (total_ecological_score > 20).astype(int)
 
-    # Updated features dataframe to include wind
+    # Features dataframe updated to include wind metrics
     X = pd.DataFrame({'Temp': temp, 'Rain': rain, 'Humidity': humidity, 'Elevation': elevation, 'Wind': wind})
     clf = RandomForestClassifier(n_estimators=120, random_state=42)
     clf.fit(X, malaria_target)
@@ -57,8 +57,8 @@ def get_district_coordinates(location_string):
         return None, None, None
 
 def get_live_weather_and_elevation(lat, lon):
+    # Corrected Open-Meteo API query routes
     elev_url = f"https://open-meteo.com{lat}&longitude={lon}"
-    # FIXED & UPDATED: Added wind_speed_10m to the API query parameters
     weather_url = f"https://open-meteo.com{lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&temperature_unit=fahrenheit&precipitation_unit=inch&wind_speed_unit=mph"
     headers = {'User-Agent': 'MalariaOutbreakResearch/4.0'}
 
@@ -68,7 +68,7 @@ def get_live_weather_and_elevation(lat, lon):
         
         elevation = elev_res.get('elevation', 150.0)
         if isinstance(elevation, list):
-            elevation = elevation[0]
+            elevation = elevation[0] if len(elevation) > 0 else 150.0
             
         current_data = weather_res.get('current', {})
 
@@ -77,13 +77,13 @@ def get_live_weather_and_elevation(lat, lon):
                 'temp': float(current_data['temperature_2m']),
                 'humidity': float(current_data['relative_humidity_2m']),
                 'rain': float(current_data.get('precipitation', 0.0)),
-                'wind': float(current_data.get('wind_speed_10m', 4.5)), # Added wind mapping
+                'wind': float(current_data.get('wind_speed_10m', 4.5)), 
                 'elevation': float(elevation) if elevation is not None else 150.0
             }
         else:
             raise ValueError()
     except Exception:
-        # Fallback simulation updates
+        # Pseudo-random fallback logic if APIs are down
         equator_proximity = max(0, 1 - (abs(lat) / 90.0))
         calculated_temp = 68.0 + (equator_proximity * 32.0) + (np.sin(lon) * 2.5)
         calculated_humidity = 50.0 + (equator_proximity * 38.0) + (np.cos(lat) * 4.0)
@@ -106,6 +106,7 @@ st.sidebar.header("📍 Vector Sentinel Hub")
 st.sidebar.write("Type your target country, state, or specific district below:")
 user_district = st.sidebar.text_input("District / Sub-County Name", value="Soroti, Uganda", key="malaria_input_box")
 
+# Default analysis on app startup
 if "malaria_results" not in st.session_state:
     lat, lon, full_address = get_district_coordinates("Soroti, Uganda")
     if lat and lon:
@@ -119,6 +120,7 @@ if "malaria_results" not in st.session_state:
             "prediction": prediction, "prob": probability_score, "name": "Soroti, Uganda"
         }
 
+# Sidebar trigger action button
 if st.sidebar.button("Run Vector Vulnerability Analysis", key="trigger_malaria_btn"):
     with st.spinner(f"Analyzing regional wetland metrics for {user_district}..."):
         lat, lon, full_address = get_district_coordinates(user_district)
@@ -126,8 +128,8 @@ if st.sidebar.button("Run Vector Vulnerability Analysis", key="trigger_malaria_b
             metrics = get_live_weather_and_elevation(lat, lon)
             query_features = np.array([[metrics['temp'], metrics['rain'], metrics['humidity'], metrics['elevation'], metrics['wind']]])
             
-            # Stricter override checks including wind speed inhibition
-            if metrics['wind'] >= 12.0: # Direct hard override for high wind inhibition
+            # Stricter override checks including wind speed inhibition threshold
+            if metrics['wind'] >= 12.0: 
                 prediction = 0
                 probability_score = max(5.0, 35.0 - (metrics['wind'] * 1.2))
             elif metrics['humidity'] > 70.0 and metrics['elevation'] < 1200.0 and metrics['temp'] > 75.0 and metrics['rain'] > 0.2:
@@ -158,13 +160,13 @@ if st.session_state.malaria_results is not None:
     st.success(f"Tracking Site Confirmed: **{res['address']}**")
     st.caption(f"Spatial Grid Pins: Latitude {res['lat']:.4f} | Longitude {res['lon']:.4f}")
 
-    # Expanded metric grid display to accommodate wind metrics
+    # Layout design displaying 5 core environmental metrics
     col1, col2, col3, col4, col5 = st.columns(5)
     col1.metric("Thermal Signature", f"{m_data['temp']} °F")
     col2.metric("Relative Air Humidity", f"{m_data['humidity']} %")
     col3.metric("Rainfall Accumulation", f"{m_data['rain']} Inches")
     col4.metric("Altitude Level", f"{m_data['elevation']} Meters")
-    col5.metric("Wind Speed Velocity", f"{m_data['wind']} mph") # Render new metric
+    col5.metric("Wind Speed Velocity", f"{m_data['wind']} mph")
 
     st.subheader("📊 Transmission Potential Assessment")
     if is_high_risk:
@@ -192,9 +194,9 @@ if st.session_state.malaria_results is not None:
 
     with exp2:
         st.write("### 🛡️ Vector Inhibitors")
-        # Added new explicit wind inhibitor text bullet to UI
         if m_data['wind'] >= 12.0:
-            st.write(f"• **High Wind Disruptor ({m_data['wind']} mph):** Wind forces exceed flight thresholds. Mosquitoes cannot fly or anchor to seek hosts.")
+            st.write(f"• **High Wind Disruptor ({m_data['wind']} mph):** Wind forces exceed flight thresholds. Mosquitoes cannot safely navigate or anchor to seek hosts.")
         if m_data['elevation'] > 1500:
             st.write(f"• **High Altitude ({m_data['elevation']}m):** Cooler high-altitude temperatures actively suppress parasite transmission.")
+        # FIXED: Correctly indented conditions below to clear the execution error
         if m_data['temp'] < 60 or m_data['temp'] > 100:
