@@ -17,7 +17,6 @@ st.caption("Vector niche predictive analytics mapping current climate signals to
 # ==========================================
 @st.cache_data
 def train_malaria_model():
-    """Trains a classifier based on the physiological constraints of Anopheles mosquitoes."""
     np.random.seed(42)
     n_samples = 2500
 
@@ -75,14 +74,6 @@ def get_live_weather_and_elevation(lat, lon):
         else:
             raise ValueError()
     except Exception:
-        is_la_paz = (-17.0 < lat < -16.0) and (-69.0 < lon < -67.0)
-        is_cairo = (29.0 < lat < 31.0) and (30.0 < lon < 32.0)
-        
-        if is_la_paz:
-            return {'temp': 52.0, 'humidity': 48.0, 'rain': 0.0, 'elevation': 3640.0}
-        elif is_cairo:
-            return {'temp': 92.0, 'humidity': 32.0, 'rain': 0.0, 'elevation': 23.0}
-            
         equator_proximity = max(0, 1 - (abs(lat) / 90.0))
         calculated_temp = 68.0 + (equator_proximity * 32.0) + (np.sin(lon) * 2.5)
         calculated_humidity = 50.0 + (equator_proximity * 38.0) + (np.cos(lat) * 4.0)
@@ -97,14 +88,13 @@ def get_live_weather_and_elevation(lat, lon):
         }
 
 # ==========================================
-# 4. INTERFACE LAYOUT & MEMORY SYSTEM
+# 4. INTERFACE LAYOUT & DEFAULT ANALYSIS
 # ==========================================
 st.sidebar.header("📍 Vector Sentinel Hub")
 st.sidebar.write("Type your target country, state, or specific district below:")
-user_district = st.sidebar.text_input(label="District / Sub-County Name", value="Soroti, Uganda",
-                                      key="malaria_input_box")
+user_district = st.sidebar.text_input("District / Sub-County Name", value="Soroti, Uganda", key="malaria_input_box")
 
-# Initialize with default analysis on startup
+# Default analysis on startup
 if "malaria_results" not in st.session_state:
     lat, lon, full_address = get_district_coordinates("Soroti, Uganda")
     if lat and lon:
@@ -118,7 +108,7 @@ if "malaria_results" not in st.session_state:
             "prediction": prediction, "prob": probability_score, "name": "Soroti, Uganda"
         }
 
-# Sidebar button still allows re‑running analysis for any location
+# Sidebar button for custom analysis
 if st.sidebar.button("Run Vector Vulnerability Analysis", key="trigger_malaria_btn"):
     with st.spinner(f"Analyzing regional wetland metrics for {user_district}..."):
         lat, lon, full_address = get_district_coordinates(user_district)
@@ -163,4 +153,17 @@ if st.session_state.malaria_results is not None:
     st.subheader("📊 Transmission Potential Assessment")
     if is_high_risk:
         st.error(
-            f"🚨 CRITICAL VECTOR SURGE ALERT: Climate spikes and
+            f"🚨 CRITICAL VECTOR SURGE ALERT: Climate spikes and topographic configurations in {res['name']} "
+            f"indicate a high-risk transmission index ({res['prob']:.1f}% Vector Affinity Match)."
+        )
+    else:
+        st.success(
+            f"✅ STABLE ENVIRO-MATRIX: Local climatic features display a low threat index for a severe vector breeding cycle "
+            f"({res['prob']:.1f}% Vector Affinity Match)."
+        )
+
+    st.subheader("🔍 Vector Niche Analysis: Why this specific classification?")
+    exp1, exp2 = st.columns(2)
+    with exp1:
+        st.write("### 🦟 Vector Accelerators")
+        if m_data['humidity'] > 65
