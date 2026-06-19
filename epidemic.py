@@ -162,4 +162,4 @@ if st.session_state.malaria_results is not None:
             f"({res['prob']:.1f}% Vector Affinity Match)."
         )
 
-    st.subheader("🔍 Vector Niche
+    st.subheader("🔍 Vector Niche predictive analytics mapping current climate signals to Anopheles transmission risks.")
