@@ -162,4 +162,42 @@ if st.session_state.malaria_results is not None:
             f"({res['prob']:.1f}% Vector Affinity Match)."
         )
 
-    st.subheader("🔍 Vector Niche predictive analytics mapping current climate signals to Anopheles transmission risks.")
+        st.subheader("🔍 Vector Niche Analysis: Why this specific classification?")
+    exp1, exp2 = st.columns(2)
+    with exp1:
+        st.write("### 🦟 Vector Accelerators")
+        if m_data['humidity'] > 65:
+            st.write(f"• **High Humidity ({m_data['humidity']}%):** Greatly expands adult *Anopheles* lifespan. Mosquitoes live long enough for the parasite to mature.")
+        if 72 <= m_data['temp'] <= 95:
+            st.write(f"• **Optimal Incubation Heat ({m_data['temp']}°F):** Provides perfect warmth for fast larval growth.")
+        if m_data['elevation'] < 1200:
+            st.write(f"• **Low Altitude Basin ({m_data['elevation']}m):** Flat topography traps water runoff easily.")
+        if m_data['rain'] > 0.4:
+            st.write(f"• **Breeding Pool Formation ({m_data['rain']} in):** Creates small pools of clean, stagnant water ideal for vector eggs.")
+        if m_data['humidity'] <= 65 and (m_data['temp'] < 72 or m_data['temp'] > 95) and m_data['elevation'] >= 1200 and m_data['rain'] <= 0.4:
+            st.write("_None observed._")
+
+    with exp2:
+        st.write("### 🛡️ Environmental Inhibitors")
+        if m_data['elevation'] >= 1500:
+            st.write(f"• **High Altitude Shield ({m_data['elevation']}m):** High mountain air stops mosquito replication cycles entirely.")
+        if m_data['temp'] < 64:
+            st.write(f"• **Thermal Cessation Boundary ({m_data['temp']}°F):** Cool climates stop the parasite from growing inside vectors.")
+        if m_data['humidity'] < 55:
+            st.write(f"• **Desiccation Factor ({m_data['humidity']}%):** Low humidity dries out vectors, causing high mortality.")
+        if m_data['rain'] == 0:
+            st.write("• **No Rainfall:** Absence of surface water prevents breeding pool formation.")
+
+    # ==========================================
+    # Optional Map Visualization
+    # ==========================================
+    st.subheader("🗺️ Geospatial Context")
+    malaria_map = folium.Map(location=[res['lat'], res['lon']], zoom_start=6)
+    folium.Marker(
+        [res['lat'], res['lon']],
+        popup=res['address'],
+        tooltip="Analysis Site",
+        icon=folium.Icon(color="red" if is_high_risk else "green")
+    ).add_to(malaria_map)
+    st_folium(malaria_map, width=700, height=500)
+
