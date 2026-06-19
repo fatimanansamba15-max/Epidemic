@@ -27,18 +27,12 @@ def train_malaria_model():
     elevation = np.random.uniform(0, 3000, n_samples)
 
     # Precise Vector Biology Math:
-    # 1. Mosquitoes thrive between 72°F and 95°F.
     temp_risk = np.where((temp >= 72) & (temp <= 95), 35, -15)
-    # 2. Surface water from rainfall creates critical vector breeding pools.
     rain_risk = rain * 6.0
-    # 3. High humidity drastically expands adult mosquito lifespan.
     humidity_risk = np.where(humidity > 65, 25, -20)
-    # 4. Thermal constraints at high altitudes disrupt parasite incubation.
     elevation_drain = elevation * 0.03
 
     total_ecological_score = temp_risk + rain_risk + humidity_risk - elevation_drain
-
-    # Classify a severe malaria vector surge threshold
     malaria_target = (total_ecological_score > 20).astype(int)
 
     X = pd.DataFrame({'Temp': temp, 'Rain': rain, 'Humidity': humidity, 'Elevation': elevation})
@@ -46,9 +40,7 @@ def train_malaria_model():
     clf.fit(X, malaria_target)
     return clf
 
-
 model = train_malaria_model()
-
 
 # ==========================================
 # 3. GLOBAL GEOGRAPHY & LIVE API ENGINE
@@ -62,7 +54,6 @@ def get_district_coordinates(location_string):
         return None, None, None
     except Exception:
         return None, None, None
-
 
 def get_live_weather_and_elevation(lat, lon):
     elev_url = f"https://open-meteo.com{lat}&longitude={lon}"
@@ -85,7 +76,6 @@ def get_live_weather_and_elevation(lat, lon):
         else:
             raise ValueError()
     except Exception:
-        # FIXED: Intelligent microclimate generator that detects mountains and coordinate bounds correctly
         is_la_paz = (-17.0 < lat < -16.0) and (-69.0 < lon < -67.0)
         is_cairo = (29.0 < lat < 31.0) and (30.0 < lon < 32.0)
         
@@ -107,7 +97,6 @@ def get_live_weather_and_elevation(lat, lon):
             'elevation': round(calculated_elevation, 1)
         }
 
-
 # ==========================================
 # 4. INTERFACE LAYOUT & MEMORY SYSTEM
 # ==========================================
@@ -124,10 +113,8 @@ if st.sidebar.button("Run Vector Vulnerability Analysis", key="trigger_malaria_b
         lat, lon, full_address = get_district_coordinates(user_district)
         if lat and lon:
             metrics = get_live_weather_and_elevation(lat, lon)
-
             query_features = np.array([[metrics['temp'], metrics['rain'], metrics['humidity'], metrics['elevation']]])
             
-            # FIXED: Refined logic boundaries to ensure high elevation areas bypass lowland flags
             if metrics['humidity'] > 70.0 and metrics['elevation'] < 1200.0 and metrics['temp'] > 75.0:
                 prediction = 1
                 probability_score = min(98.7, 72.0 + (metrics['humidity'] * 0.2))
@@ -156,7 +143,6 @@ if st.session_state.malaria_results is not None:
     st.success(f"Tracking Site Confirmed: **{res['address']}**")
     st.caption(f"Spatial Grid Pins: Latitude {res['lat']:.4f} | Longitude {res['lon']:.4f}")
 
-    # Metric Display Cards
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Thermal Signature", f"{m_data['temp']} °F")
     col2.metric("Relative Air Humidity", f"{m_data['humidity']} %")
@@ -171,35 +157,9 @@ if st.session_state.malaria_results is not None:
         st.success(
             f"✅ STABLE ENVIRO-MATRIX: Local climatic features display a low threat index for a severe vector breeding cycle ({res['prob']:.1f}% Vector Affinity Match).")
 
-    # ==========================================
-    # MALARIA SCIENTIFIC EXPLAINER MODULE
-    # ==========================================
     st.subheader("🔍 Vector Niche Analysis: Why this specific classification?")
-
     exp1, exp2 = st.columns(2)
     with exp1:
         st.write("### 🦟 Vector Accelerators")
         if m_data['humidity'] > 65:
-            st.write(
-                f"• **High Humidity ({m_data['humidity']}%):** Greatly expands adult *Anopheles* lifespan. Mosquitoes live long enough for the parasite to mature.")
-        if m_data['temp'] >= 72 and m_data['temp'] <= 95:
-            st.write(
-                f"• **Optimal Incubation Heat ({m_data['temp']}°F):** Gives perfect warmth for fast larval growth.")
-        if m_data['elevation'] < 1200:
-            st.write(
-                f"• **Low Altitude Basin ({m_data['elevation']}m):** Flat topography traps water runoff easily.")
-        if m_data['rain'] > 0.4:
-            st.write(
-                f"• **Breeding Pool Formation ({m_data['rain']} in):** Creates small pools of clean, stagnant water ideal for vector eggs.")
-        if m_data['humidity'] <= 65 and (m_data['temp'] < 72 or m_data['temp'] > 95) and m_data['elevation'] >= 1200 and m_data['rain'] <= 0.4:
-            st.write("_None observed._")
-
-    with exp2:
-        st.write("### 🛡️ Environmental Inhibitors")
-        if m_data['elevation'] >= 1500:
-            st.write(f"• **High Altitude Shield ({m_data['elevation']}m):** High mountain air stops mosquito replication cycles entirely.")
-        if m_data['temp'] < 64:
-            st.write(f"• **Thermal Cessation Boundary ({m_data['temp']}°F):** Cool climates stop the parasite from growing inside vectors.")
-        if m_data['humidity'] < 55:
-            st.write(f"• **Desiccation Factor ({m_data['humidity']}%):** Low humidity dries out vectors, causing high mortality.")
-        if m_data['rain'] == 0:
+            st.write(f"• **High Humidity ({m_data['humidity']}%):** Greatly expands adult
