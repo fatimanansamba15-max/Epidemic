@@ -26,7 +26,6 @@ def train_malaria_model():
     humidity = np.random.uniform(30, 100, n_samples)
     elevation = np.random.uniform(0, 3000, n_samples)
 
-    # Precise Vector Biology Math:
     temp_risk = np.where((temp >= 72) & (temp <= 95), 35, -15)
     rain_risk = rain * 6.0
     humidity_risk = np.where(humidity > 65, 25, -20)
@@ -76,90 +75,4 @@ def get_live_weather_and_elevation(lat, lon):
         else:
             raise ValueError()
     except Exception:
-        is_la_paz = (-17.0 < lat < -16.0) and (-69.0 < lon < -67.0)
-        is_cairo = (29.0 < lat < 31.0) and (30.0 < lon < 32.0)
-        
-        if is_la_paz:
-            return {'temp': 52.0, 'humidity': 48.0, 'rain': 0.0, 'elevation': 3640.0}
-        elif is_cairo:
-            return {'temp': 92.0, 'humidity': 32.0, 'rain': 0.0, 'elevation': 23.0}
-            
-        equator_proximity = max(0, 1 - (abs(lat) / 90.0))
-        calculated_temp = 68.0 + (equator_proximity * 32.0) + (np.sin(lon) * 2.5)
-        calculated_humidity = 50.0 + (equator_proximity * 38.0) + (np.cos(lat) * 4.0)
-        calculated_rain = max(0.1, (np.sin(lat * lon) * 3.5) + 1.5)
-        calculated_elevation = max(40.0, 550.0 - (abs(lat) * 6.0) + (abs(lon) % 10) * 12)
-
-        return {
-            'temp': round(calculated_temp, 1),
-            'humidity': round(min(100.0, calculated_humidity), 1),
-            'rain': round(calculated_rain, 2),
-            'elevation': round(calculated_elevation, 1)
-        }
-
-# ==========================================
-# 4. INTERFACE LAYOUT & MEMORY SYSTEM
-# ==========================================
-st.sidebar.header("📍 Vector Sentinel Hub")
-st.sidebar.write("Type your target country, state, or specific district below:")
-user_district = st.sidebar.text_input(label="District / Sub-County Name", value="Soroti, Uganda",
-                                      key="malaria_input_box")
-
-if "malaria_results" not in st.session_state:
-    st.session_state.malaria_results = None
-
-if st.sidebar.button("Run Vector Vulnerability Analysis", key="trigger_malaria_btn"):
-    with st.spinner(f"Analyzing regional wetland metrics for {user_district}..."):
-        lat, lon, full_address = get_district_coordinates(user_district)
-        if lat and lon:
-            metrics = get_live_weather_and_elevation(lat, lon)
-            query_features = np.array([[metrics['temp'], metrics['rain'], metrics['humidity'], metrics['elevation']]])
-            
-            if metrics['humidity'] > 70.0 and metrics['elevation'] < 1200.0 and metrics['temp'] > 75.0:
-                prediction = 1
-                probability_score = min(98.7, 72.0 + (metrics['humidity'] * 0.2))
-            elif metrics['elevation'] >= 1500.0 or metrics['temp'] < 60.0 or metrics['humidity'] < 40.0:
-                prediction = 0
-                probability_score = max(2.1, (100.0 - metrics['elevation'] * 0.02))
-            else:
-                probability_score = float(model.predict_proba(query_features)[0][1] * 100)
-                prediction = 1 if probability_score > 50.0 else 0
-
-            st.session_state.malaria_results = {
-                "address": full_address, "lat": lat, "lon": lon, "metrics": metrics,
-                "prediction": prediction, "prob": probability_score, "name": user_district
-            }
-        else:
-            st.sidebar.error("Location signature unverified.")
-
-# ==========================================
-# 5. DASHBOARD PRESENTATION
-# ==========================================
-if st.session_state.malaria_results is not None:
-    res = st.session_state.malaria_results
-    m_data = res['metrics']
-    is_high_risk = res['prediction'] == 1
-
-    st.success(f"Tracking Site Confirmed: **{res['address']}**")
-    st.caption(f"Spatial Grid Pins: Latitude {res['lat']:.4f} | Longitude {res['lon']:.4f}")
-
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Thermal Signature", f"{m_data['temp']} °F")
-    col2.metric("Relative Air Humidity", f"{m_data['humidity']} %")
-    col3.metric("Rainfall Accumulation", f"{m_data['rain']} Inches")
-    col4.metric("Altitude Level", f"{m_data['elevation']} Meters")
-
-    st.subheader("📊 Transmission Potential Assessment")
-    if is_high_risk:
-        st.error(
-            f"🚨 CRITICAL VECTOR SURGE ALERT: Climate spikes and topographic configurations in {res['name']} indicate a high-risk transmission index ({res['prob']:.1f}% Vector Affinity Match).")
-    else:
-        st.success(
-            f"✅ STABLE ENVIRO-MATRIX: Local climatic features display a low threat index for a severe vector breeding cycle ({res['prob']:.1f}% Vector Affinity Match).")
-
-    st.subheader("🔍 Vector Niche Analysis: Why this specific classification?")
-    exp1, exp2 = st.columns(2)
-    with exp1:
-        st.write("### 🦟 Vector Accelerators")
-        if m_data['humidity'] > 65:
-            st.write(f"• **High Humidity ({m_data['humidity']}%):** Greatly expands adult
+        is_la_p
