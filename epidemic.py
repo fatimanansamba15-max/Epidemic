@@ -116,10 +116,11 @@ if st.sidebar.button("Run Vector Vulnerability Analysis", key="trigger_malaria_b
             metrics = get_live_weather_and_elevation(lat, lon)
             query_features = np.array([[metrics['temp'], metrics['rain'], metrics['humidity'], metrics['elevation']]])
             
-            if metrics['humidity'] > 70.0 and metrics['elevation'] < 1200.0 and metrics['temp'] > 75.0:
+            # Updated thresholds: stricter humidity + rainfall check
+            if metrics['humidity'] > 70.0 and metrics['elevation'] < 1200.0 and metrics['temp'] > 75.0 and metrics['rain'] > 0.2:
                 prediction = 1
                 probability_score = min(98.7, 72.0 + (metrics['humidity'] * 0.2))
-            elif metrics['elevation'] >= 1500.0 or metrics['temp'] < 60.0 or metrics['humidity'] < 40.0:
+            elif metrics['elevation'] >= 1500.0 or metrics['temp'] < 60.0 or metrics['humidity'] < 50.0 or metrics['rain'] == 0:
                 prediction = 0
                 probability_score = max(2.1, (100.0 - metrics['elevation'] * 0.02))
             else:
@@ -162,9 +163,9 @@ if st.session_state.malaria_results is not None:
             f"({res['prob']:.1f}% Vector Affinity Match)."
         )
 
-        st.subheader("🔍 Vector Niche Analysis: Why this specific classification?")
+    st.subheader("🔍 Vector Niche Analysis: Why this specific classification?")
     exp1, exp2 = st.columns(2)
-    with exp1:
+        with exp1:
         st.write("### 🦟 Vector Accelerators")
         if m_data['humidity'] > 65:
             st.write(f"• **High Humidity ({m_data['humidity']}%):** Greatly expands adult *Anopheles* lifespan. Mosquitoes live long enough for the parasite to mature.")
@@ -200,4 +201,3 @@ if st.session_state.malaria_results is not None:
         icon=folium.Icon(color="red" if is_high_risk else "green")
     ).add_to(malaria_map)
     st_folium(malaria_map, width=700, height=500)
-
