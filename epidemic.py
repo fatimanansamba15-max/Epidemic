@@ -162,8 +162,4 @@ if st.session_state.malaria_results is not None:
             f"({res['prob']:.1f}% Vector Affinity Match)."
         )
 
-    st.subheader("🔍 Vector Niche Analysis: Why this specific classification?")
-    exp1, exp2 = st.columns(2)
-    with exp1:
-        st.write("### 🦟 Vector Accelerators")
-        if m_data['humidity'] > 65
+    st.subheader("🔍 Vector Niche
