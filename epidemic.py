@@ -163,9 +163,11 @@ if st.session_state.malaria_results is not None:
             f"({res['prob']:.1f}% Vector Affinity Match)."
         )
 
-    st.subheader("🔍 Vector Niche Analysis: Why this specific classification?")
+        st.subheader("🔍 Vector Niche Analysis: Why this specific classification?")
     exp1, exp2 = st.columns(2)
-        with exp1:
+
+    # Vector Accelerators
+    with exp1:
         st.write("### 🦟 Vector Accelerators")
         if m_data['humidity'] > 65:
             st.write(f"• **High Humidity ({m_data['humidity']}%):** Greatly expands adult *Anopheles* lifespan. Mosquitoes live long enough for the parasite to mature.")
@@ -178,6 +180,7 @@ if st.session_state.malaria_results is not None:
         if m_data['humidity'] <= 65 and (m_data['temp'] < 72 or m_data['temp'] > 95) and m_data['elevation'] >= 1200 and m_data['rain'] <= 0.4:
             st.write("_None observed._")
 
+    # Environmental Inhibitors
     with exp2:
         st.write("### 🛡️ Environmental Inhibitors")
         if m_data['elevation'] >= 1500:
