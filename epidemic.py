@@ -43,6 +43,8 @@ model = train_malaria_model()
 # ==========================================
 # 3. GLOBAL GEOGRAPHY & LIVE API ENGINE
 # ==========================================
+# ENHANCEMENT: Caching the geocoder prevents hit limits and drops response latency to 0ms on repeated lookups
+@st.cache_data(show_spinner=False, ttl=86400)  # Caches results for 24 hours (86400 seconds)
 def get_district_coordinates(location_string):
     geolocator = Nominatim(user_agent="malaria_outbreak_tracker_2026")
     try:
@@ -64,7 +66,7 @@ def get_live_weather_and_elevation(lat, lon):
         
         elevation = elev_res.get('elevation', 150.0)
         if isinstance(elevation, list):
-            elevation = elevation[0] if len(elevation) > 0 else 150.0
+            elevation = elevation if len(elevation) > 0 else 150.0
             
         current_data = weather_res.get('current', {})
 
@@ -189,8 +191,6 @@ if st.session_state.malaria_results is not None:
             st.write(f"• **High Wind Disruptor ({m_data['wind']} mph):** Wind forces exceed flight thresholds. Mosquitoes cannot safely navigate or anchor to seek hosts.")
         if m_data['elevation'] > 1500:
             st.write(f"• **High Altitude ({m_data['elevation']}m):** Cooler high-altitude temperatures actively suppress parasite transmission.")
-        
-        # FIXED BLOCK: Indented execution statements added directly below
         if m_data['temp'] < 60 or m_data['temp'] > 100:
             st.write(f"• **Thermal Stress ({m_data['temp']}°F):** Temperatures outside the thermal sweet spot stall larval growth.")
         if m_data['humidity'] < 50:
