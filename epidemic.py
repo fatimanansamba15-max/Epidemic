@@ -22,6 +22,8 @@ if "malaria_results" not in st.session_state:
     st.session_state.malaria_results = None
 if "audit_history" not in st.session_state:
     st.session_state.audit_history = []
+if "last_queried_district" not in st.session_state:
+    st.session_state.last_queried_district = ""
 
 # ==========================================
 # 2. MALARIA VECTOR BIOLOGY TRAINING ENGINE
@@ -139,24 +141,14 @@ def run_risk_calculation(metrics):
     return probability_score, prediction
 
 # ==========================================
-# 4. INTERFACE LAYOUT & ANALYSIS EXECUTION
+# 4. INTERFACE LAYOUT & AUTOMATIC ANALYSIS
 # ==========================================
 st.sidebar.header("📍 Vector Sentinel Hub")
 st.sidebar.write("Type your target country, state, or specific district below:")
 user_district = st.sidebar.text_input("District / Sub-County Name", value="Soroti, Uganda", key="malaria_input_box")
 
-if st.session_state.malaria_results is None:
-    lat, lon, full_address = get_district_coordinates("Soroti, Uganda")
-    if lat and lon:
-        metrics = get_live_weather_and_elevation(lat, lon)
-        probability_score, prediction = run_risk_calculation(metrics)
-        st.session_state.malaria_results = {
-            "address": full_address, "lat": lat, "lon": lon, "metrics": metrics,
-            "prediction": prediction, "prob": probability_score, "name": "Soroti, Uganda"
-        }
-        log_to_history("Soroti, Uganda", full_address, lat, lon, metrics, probability_score, prediction)
-
-if st.sidebar.button("Run Vector Vulnerability Analysis", key="trigger_malaria_btn"):
+# Reactive Execution Flow: Triggers immediately if the query box changes or it's the first initialization load
+if st.session_state.malaria_results is None or user_district != st.session_state.last_queried_district:
     with st.spinner(f"Analyzing regional wetland metrics for {user_district}..."):
         lat, lon, full_address = get_district_coordinates(user_district)
         if lat and lon:
@@ -167,9 +159,10 @@ if st.sidebar.button("Run Vector Vulnerability Analysis", key="trigger_malaria_b
                 "address": full_address, "lat": lat, "lon": lon, "metrics": metrics,
                 "prediction": prediction, "prob": probability_score, "name": user_district
             }
+            st.session_state.last_queried_district = user_district
             log_to_history(user_district, full_address, lat, lon, metrics, probability_score, prediction)
         else:
-            st.sidebar.error("Location signature unverified.")
+            st.sidebar.error("Location signature unverified. Showing last active location.")
 
 # ==========================================
 # 5. DASHBOARD PRESENTATION TAB LAYOUT
