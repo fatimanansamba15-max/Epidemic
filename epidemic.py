@@ -17,7 +17,6 @@ st.set_page_config(page_title="Malaria Outbreak Intelligence Engine", layout="wi
 # Premium CSS Injection for sleek visual design accents
 st.markdown("""
     <style>
-        /* Import premium typography */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
         
         html, body, [class*="css"] {
@@ -349,7 +348,14 @@ if st.session_state.malaria_results is not None:
             x=df_hz['Date'], y=df_hz['Outbreak Risk %'],
             mode='lines+markers', name='Projected Outbreak Index %',
             line=dict(color='#ef4444' if max_future_risk >= 48.0 else '#22c55e', width=3),
-            marker=dict(size=7, fillcolor="white", borderwidth=2)
+            marker=dict(
+                size=8, 
+                color='white', 
+                line=dict(
+                    width=2, 
+                    color='#ef4444' if max_future_risk >= 48.0 else '#22c55e'
+                )
+            )
         ))
         fig_horizon.add_hline(y=48.0, line_dash="dash", line_color="#f59e0b", annotation_text="Outbreak Trigger Baseline (48%)")
         
