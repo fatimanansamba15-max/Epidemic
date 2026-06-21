@@ -68,7 +68,7 @@ def get_district_coordinates(location_string):
 
 def get_live_weather_and_elevation(lat, lon):
     elev_url = f"https://api.open-meteo.com/v1/elevation?latitude={lat}&longitude={lon}"
-    # FIX: Swapped current hourly precipitation for daily precipitation sum to show true accumulation
+    # FIX: Shifted parameters to request cumulative 'daily=precipitation_sum' instead of live hourly precipitation
     weather_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m&daily=precipitation_sum&temperature_unit=fahrenheit&precipitation_unit=inch&timezone=auto"
     headers = {'User-Agent': 'MalariaOutbreakResearch/4.0'}
 
@@ -82,7 +82,7 @@ def get_live_weather_and_elevation(lat, lon):
         daily_data = weather_res.get('daily', {})
 
         if 'temperature_2m' in current_data:
-            # Extract the first entry from the daily precipitation array (today's cumulative total)
+            # Safely grab index [0] to extract today's accumulated rainfall metric
             rain_sum = daily_data.get('precipitation_sum', [0.0])[0]
             return {
                 'temp': float(current_data['temperature_2m']),
@@ -93,6 +93,7 @@ def get_live_weather_and_elevation(lat, lon):
         else:
             raise ValueError()
     except Exception:
+        # Balanced backup simulation engine if third-party live endpoints drop packets
         equator_proximity = max(0, 1 - (abs(lat) / 90.0))
         calculated_temp = 68.0 + (equator_proximity * 32.0) + (np.sin(lon) * 2.5)
         calculated_humidity = 50.0 + (equator_proximity * 38.0) + (np.cos(lat) * 4.0)
@@ -227,146 +228,4 @@ if st.session_state.malaria_results is not None:
             if m_data['humidity'] < 55:
                 st.write(f"• **Desiccation Factor ({m_data['humidity']}%):** Low humidity dries out vectors, yielding high adult vector mortality rates.")
             if m_data['rain'] == 0:
-                st.write("• **Absence of Precipitation:** No fresh aquatic surfaces generated to carry egg rafts.")
-            if m_data['elevation'] < 1500 and m_data['temp'] >= 64 and m_data['humidity'] >= 55 and m_data['rain'] > 0:
-                st.write("_None observed. Environment is actively uninhibited._")
-
-    # ------------------ TAB 2: VISUAL ANALYTICS ------------------
-    with tab_visuals:
-        st.subheader("Advanced Analytical Models & Spatial Maps")
-        vis_col1, vis_col2 = st.columns([1, 1])
-
-        with vis_col1:
-            fig_gauge = go.Figure(go.Indicator(
-                mode="gauge+number",
-                value=res['prob'],
-                domain={'x': [0, 1], 'y': [0, 1]},
-                title={'text': "Vector Affinity Match %", 'font': {'size': 18}},
-                gauge={
-                    'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "darkblue"},
-                    'bar': {'color': "crimson" if is_high_risk else "darkgreen"},
-                    'bgcolor': "white",
-                    'borderwidth': 2,
-                    'bordercolor': "gray",
-                    'steps': [
-                        {'range': [0, 50], 'color': 'rgba(0, 128, 0, 0.2)'},
-                        {'range': [50, 75], 'color': 'rgba(255, 165, 0, 0.2)'},
-                        {'range': [75, 100], 'color': 'rgba(255, 0, 0, 0.2)'}
-                    ],
-                }
-            ))
-            fig_gauge.update_layout(height=320, margin=dict(l=20, r=20, t=40, b=20))
-            st.plotly_chart(fig_gauge, use_container_width=True)
-
-            st.markdown("**Random Forest Classifier Feature Importances**")
-            importances = model.feature_importances_
-            feat_df = pd.DataFrame({
-                'Ecological Vector Indicator': ['Temperature', 'Precipitation', 'Relative Humidity', 'Elevation'],
-                'Gini Importance Weight': importances
-            }).sort_values(by='Gini Importance Weight', ascending=True)
-            
-            fig_bar = px.bar(
-                feat_df, x='Gini Importance Weight', y='Ecological Vector Indicator', 
-                orientation='h', color='Gini Importance Weight',
-                color_continuous_scale=px.colors.sequential.YlOrRd
-            )
-            fig_bar.update_layout(height=230, showlegend=False, margin=dict(l=10, r=10, t=10, b=10))
-            st.plotly_chart(fig_bar, use_container_width=True)
-
-        with vis_col2:
-            st.markdown("**Geospatial Mapping Context**")
-            malaria_map = folium.Map(location=[res['lat'], res['lon']], zoom_start=7)
-            folium.Marker(
-                [res['lat'], res['lon']],
-                popup=res['address'],
-                tooltip="Active Track Site",
-                icon=folium.Icon(color="red" if is_high_risk else "green", icon="info-sign")
-            ).add_to(malaria_map)
-            st_folium(malaria_map, width=550, height=500, returned_objects=[])
-
-    # ------------------ TAB 3: REPORTS & DOWNLOAD HUB ------------------
-    with tab_reports:
-        st.subheader("Data Export Center")
-        st.write("Generate and download compliance records, environmental diagnostics datasets, and analytics ledgers.")
-
-        rep_col1, rep_col2 = st.columns(2)
-
-        with rep_col1:
-            st.markdown("### 📄 Single Site Executive Report")
-            st.write("Generates an individual summary text report containing data signatures, risks, and environmental inhibitors/accelerators observed for this location.")
-            
-            report_txt = f"""MALARIA EARLY-WARNING OUTBREAK INTELLIGENCE ENGINE REPORT
-Generated on: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-----------------------------------------------------------------------
-TARGET ANALYSIS SITE: {res['address']}
-Coordinates: Latitude {res['lat']:.4f} | Longitude {res['lon']:.4f}
-
-ENVIRONMENTAL CLIMATE SIGNATURES:
-- Thermal Reading: {m_data['temp']} °F
-- Relative Humidity: {m_data['humidity']} %
-- Rainfall Accumulation: {m_data['rain']} Inches
-- Topographic Altitude: {m_data['elevation']} Meters
-
-CLASSIFICATION PREDICTION DIAGNOSTICS:
-- Assessment Verdict: {"🚨 CRITICAL VECTOR SURGE ALERT" if is_high_risk else "✅ STABLE ENVIRO-MATRIX"}
-- Vector Affinity Match Index: {res['prob']:.2f}%
-----------------------------------------------------------------------
-Disclaimer: Operational research intelligence based on biological niche calculations.
-"""
-            st.download_button(
-                label="📥 Download Executive Summary (.txt)",
-                data=report_txt,
-                file_name=f"Malaria_Intelligence_Report_{res['name'].replace(' ', '_')}.txt",
-                mime="text/plain",
-                use_container_width=True
-            )
-
-        with rep_col2:
-            st.markdown("### 🗃️ Complete Run Search History Ledger")
-            st.write("Download an aggregated tabular audit record tracking all target geographic queries processed throughout this application user-session.")
-            
-            if st.session_state.audit_history:
-                history_df = pd.DataFrame(st.session_state.audit_history)
-                st.dataframe(history_df, use_container_width=True, height=150)
-                csv_buffer = history_df.to_csv(index=False).encode('utf-8')
-                
-                st.download_button(
-                    label="📥 Download Session Audit History (.csv)",
-                    data=csv_buffer,
-                    file_name="Malaria_Outbreak_Session_Audit_Ledger.csv",
-                    mime="text/csv",
-                    use_container_width=True
-                )
-            else:
-                st.info("No query sessions recorded in the buffer ledger yet.")
-
-    # ------------------ TAB 4: MALARIA PREVENTION & CONTROL ------------------
-    with tab_prevention:
-        st.subheader("🛡️ Vector Control & Malaria Prevention Protocols")
-        st.write("Deploying tactical environmental workflows and individual barriers based on WHO-aligned standards.")
-        
-        if is_high_risk:
-            st.warning(f"⚠️ **Active Risk Guidance for {res['name']}:** High biological affinity detected! Immediate deployment of environmental controls, larviciding standing surface water, and community-wide bednet audits are highly recommended.")
-        else:
-            st.info(f"💡 **Active Risk Guidance for {res['name']}:** Low immediate ecosystem threat. Maintain baseline environmental tracking and seasonal source reductions to keep breeding niches unviable.")
-            
-        st.markdown("---")
-        prev_col1, prev_col2 = st.columns(2)
-        
-        with prev_col1:
-            st.markdown("### 🏠 Personal & Household Protections")
-            st.markdown("""
-            * **Long-Lasting Insecticidal Nets (LLINs):** Sleep under factory-treated insecticidal mosquito bednets every night. Ensure nets are well-tucked without tears.
-            * **Indoor Residual Spraying (IRS):** Apply recommended long-lasting chemical insecticides to inside walls and ceilings where adult mosquitoes rest.
-            * **Topical Repellents:** Apply spatial skin repellents containing active ingredients like **DEET**, **Picaridin**, or **IR3535** during peak vector biting hours (dusk till dawn).
-            * **Structural Screening:** Install tight wire mesh screens on house windows, doors, and airflow eaves to block vector entry paths entirely.
-            """)
-            
-        with prev_col2:
-            st.markdown("### 🚜 Environmental & Community Management")
-            st.markdown("""
-            * **Source Reduction & Drainage:** Eliminate stagnant fresh-water pools, clear blocked roadside ditches, drain agricultural surface puddles, and turn over open container barrels.
-            * **Biological Larviciding:** Apply regular targeted biological larvicides (such as *Bacillus thuringiensis israelensis* - **Bti**) into permanent wetland habitats to destroy larvae before maturity.
-            * **Ecosystem Clearing:** Clear high weeds, thick bush cover, and organic trash away from residential boundaries to degrade shaded adult resting spots.
-            * **Chemoprevention & Vaccination:** In high seasonal transmission zones, coordinate execution of Seasonal Malaria Chemoprevention (**SMC**) protocols and deploy recommended malaria vaccines (e.g., **RTS,S** or **R21**) for vulnerable groups.
-            """)
+                st.write("•
