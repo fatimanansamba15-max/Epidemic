@@ -91,7 +91,7 @@ def generate_target_climate_matrix(lat, lon, target_date):
         except Exception:
             pass # Fallback smoothly to historical modeling if API fails
             
-    # Long-Range Projection: Apply macro-climate formulas for future months/years
+    # Long-Range Prediction: Apply macro-climate formulas for future months/years
     calculated_temp = 70.0 + (equator_proximity * 20.0) - (month_factor * 3.0)
     calculated_humidity = 58.0 + (equator_proximity * 25.0) + (month_factor * 8.0)
     
@@ -347,9 +347,10 @@ Notice: Strategic predictive report based on macro environmental biological down
                     use_container_width=True
                 )
 
-    # ------------------ TAB 4: MALARIA PREVENTION & CONTROL ------------------
+    # ------------------ TAB 4: MALARIA CLINICAL SIGNS & PREVENTION ------------------
     with tab_prevention:
-        st.subheader("🛡️ Strategic Pre-Emptive Operational Protocols")
+        st.subheader("📋 Malaria Recognition & Prevention Field Guide")
+        st.write("A comprehensive clinical reference for identifying early infection signs and implementing WHO-aligned vector control.")
         
         if max_future_risk >= 48.0:
             st.warning(f"⚠️ **Pre-Emptive Planning Blueprint for {res['name']} ({res['month_label']} {res['year_label']}):** Projections reveal highly hospitable weather criteria during this season. Use this advanced timeline to verify medical logistics, secure supply lines for insecticidal nets (LLINs), and coordinate vector control teams ahead of the season.")
@@ -357,6 +358,47 @@ Notice: Strategic predictive report based on macro environmental biological down
             st.info(f"💡 **Pre-Emptive Planning Blueprint for {res['name']} ({res['month_label']} {res['year_label']}):** Weather trends indicate baseline seasonal parameters. Standard monitoring networks and typical resource distribution patterns should be sufficient to maintain stability.")
             
         st.markdown("---")
+        
+        # Clinical Signs and Symptoms Section
+        st.subheader("🩺 Clinical Signs & Symptoms of Malaria")
+        st.info("💡 *Note: Symptoms usually appear between 10 to 15 days after an infective mosquito bite. Early diagnosis and prompt testing (RDT/Microscopy) save lives.*")
+        
+        sym_col1, sym_col2 = st.columns(2)
+        
+        with sym_col1:
+            st.markdown("""
+            <div style="background-color:rgba(255, 165, 0, 0.1); padding:15px; border-radius:8px; border-left:5px solid orange;">
+                <h4 style="margin-top:0; color:#d97706;">🌡️ Uncomplicated Malaria (Early Signs)</h4>
+                <p>These initial symptoms can easily be mistaken for a severe flu or cold, but fluctuate in cycles:</p>
+                <ul>
+                    <li><b>High Fever & Shaking Chills:</b> Sudden spikes in body temperature followed by intense, uncontrollable shivering.</li>
+                    <li><b>Profuse Sweating:</b> Occurs when the fever suddenly breaks, leaving the individual exhausted.</li>
+                    <li><b>Severe Headache:</b> Often throbbing and accompanied by muscle or joint aches across the body.</li>
+                    <li><b>Gastrointestinal Distress:</b> Nausea, vomiting, loss of appetite, and mild diarrhea.</li>
+                    <li><b>General Fatigue:</b> A deep sense of body weakness, malaise, and dry cough.</li>
+                </ul>
+            </div>
+            """, unsafe_allow_html=True)
+            
+        with sym_col2:
+            st.markdown("""
+            <div style="background-color:rgba(220, 38, 38, 0.1); padding:15px; border-radius:8px; border-left:5px solid crimson;">
+                <h4 style="margin-top:0; color:#dc2626;">🚨 Severe Malaria (Emergency Red Flags)</h4>
+                <p><b>CRITICAL MEDICAL EMERGENCY:</b> If the infection progress is unchecked, it can lead to organ failure. Seek hospital care immediately if you notice:</p>
+                <ul>
+                    <li><b>Cerebral Malaria:</b> Extreme lethargy, confusion, delirium, seizures, or loss of consciousness/coma.</li>
+                    <li><b>Severe Anemia:</b> Extreme paleness, white lips/palms, and severe breathing difficulties due to rapid destruction of red blood cells.</li>
+                    <li><b>Jaundice:</b> Yellowing of the eyes and skin, indicating acute liver distress.</li>
+                    <li><b>Dark or Bloody Urine:</b> Often referred to as "Blackwater fever," signaling severe internal hemolysis.</li>
+                    <li><b>Persistent Vomiting & Inability to Retain Fluids:</b> Prevents oral medication intake, requiring immediate intravenous (IV) treatment.</li>
+                </ul>
+            </div>
+            """, unsafe_allow_html=True)
+            
+        st.markdown("---")
+        
+        # Operational Mitigation Workflows
+        st.subheader("🛠️ Vector Control Mitigation Options")
         prev_col1, prev_col2 = st.columns(2)
         
         with prev_col1:
@@ -365,6 +407,7 @@ Notice: Strategic predictive report based on macro environmental biological down
             * **Long-Lasting Insecticidal Nets (LLINs):** Sleep under factory-treated insecticidal mosquito bednets every night.
             * **Indoor Residual Spraying (IRS):** Apply recommended long-lasting chemical insecticides to inside walls and ceilings.
             * **Topical Repellents:** Apply spatial skin repellents containing active ingredients like DEET during peak vector biting hours.
+            * **Structural Screening:** Install tight wire mesh screens on house windows and doors.
             """)
             
         with prev_col2:
@@ -373,4 +416,5 @@ Notice: Strategic predictive report based on macro environmental biological down
             * **Source Reduction & Drainage:** Eliminate stagnant fresh-water pools, clear blocked roadside ditches, and drain puddles.
             * **Biological Larviciding:** Apply regular targeted biological larvicides (such as Bti) into permanent wetland habitats.
             * **Ecosystem Clearing:** Clear high weeds and thick bush cover away from residential boundaries.
+            * **Chemoprevention & Vaccination:** Coordinate execution of seasonal malaria chemoprevention protocols for vulnerable groups.
             """)
