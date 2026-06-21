@@ -181,7 +181,6 @@ if st.session_state.malaria_results is not None:
 
     st.success(f"Tracking Site Confirmed: **{res['address']}**")
     
-    # Added new 4th Tab: "🛡️ Prevention & Vector Control Guide"
     tab_summary, tab_visuals, tab_reports, tab_prevention = st.tabs([
         "👁️ Live Site Monitoring", 
         "📊 Dynamic Visual Analytics", 
@@ -254,7 +253,7 @@ if st.session_state.malaria_results is not None:
                     'borderwidth': 2,
                     'bordercolor': "gray",
                     'steps': [
-                         antiquity={'range': [0, 50], 'color': 'rgba(0, 128, 0, 0.2)'},
+                        {'range': [0, 50], 'color': 'rgba(0, 128, 0, 0.2)'},
                         {'range': [50, 75], 'color': 'rgba(255, 165, 0, 0.2)'},
                         {'range': [75, 100], 'color': 'rgba(255, 0, 0, 0.2)'}
                     ],
@@ -350,7 +349,6 @@ Disclaimer: Operational research intelligence based on biological niche calculat
         st.subheader("🛡️ Vector Control & Malaria Prevention Protocols")
         st.write("Deploying tactical environmental workflows and individual barriers based on WHO-aligned standards.")
         
-        # Dynamic advice banner triggered by the active vector calculation result
         if is_high_risk:
             st.warning(f"⚠️ **Active Risk Guidance for {res['name']}:** High biological affinity detected! Immediate deployment of environmental controls, larviciding standing surface water, and community-wide bednet audits are highly recommended.")
         else:
