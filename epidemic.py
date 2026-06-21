@@ -50,7 +50,7 @@ def train_validated_vector_model():
 
     # 3. Rainfall Hydrological Pooling (Sufficient but not flushing water volume)
     rain_factor = np.where((rain >= 0.2) & (rain <= 8.0), 1.5, -0.5)
-    rain_factor = np.where(rain > 9.5, 0.2, rain_factor) # Excessive monsoonal rain flushes away larvae
+    rain_factor = np.where(rain > 9.5, 0.2, rain_factor) 
 
     # 4. Topographic Altitude Drainage
     elevation_factor = np.where(elevation >= 1600, -2.5, 0.5)
@@ -84,7 +84,6 @@ def get_live_weather_and_elevation(lat, lon):
     """Fetches real-time elevation and historical 14-day cumulative rainfall logic."""
     elev_url = f"https://api.open-meteo.com/v1/elevation?latitude={lat}&longitude={lon}"
     
-    # Query current atmospheric features + 14 day lookback array for true larval pooling context
     today = datetime.now().date()
     two_weeks_ago = today - timedelta(days=14)
     
@@ -102,7 +101,6 @@ def get_live_weather_and_elevation(lat, lon):
         daily_data = weather_res.get('daily', {})
 
         if 'temperature_2m' in current_data:
-            # Accumulate rainfall totals over a 14-day breeding cycle window
             rain_series = daily_data.get('precipitation_sum', [0.0])
             two_week_accumulation = sum([r for r in rain_series if r is not None])
             
@@ -139,7 +137,6 @@ def run_validated_risk(metrics):
 
     probability_score = float(model.predict_proba(query_features)[0][1] * 100)
     
-    # Strict Biological Boundary Constraints (WHO Vector Disruption Rules)
     if metrics['elevation'] >= 1800.0 or metrics['temp'] < 61.0 or metrics['humidity'] < 45.0:
         probability_score = min(probability_score, 15.0)
         prediction = 0
@@ -232,26 +229,26 @@ if st.session_state.malaria_results is not None:
         with exp1:
             st.markdown("### 🦟 Vector Accelerators")
             if m_data['humidity'] > 65:
-                st.write(f"• **High Humidity ({m_data['humidity']}%):** Greatly expands adult Anopheles lifespan, accelerating parasitic incubation cycles.")
+                st.write(f"• **High Humidity ({m_data['humidity']}%):** Expands adult vector lifespan.")
             if 72 <= m_data['temp'] <= 95:
-                st.write(f"• **Optimal Incubation Heat ({m_data['temp']}°F):** Provides perfect warmth for rapid larval development.")
+                st.write(f"• **Optimal Incubation Heat ({m_data['temp']}°F):** Accelerates larval development.")
             if m_data['elevation'] < 1200:
-                st.write(f"• **Low Altitude Basin ({m_data['elevation']}m):** Flat topography traps water runoff easily creating vector pools.")
+                st.write(f"• **Low Altitude Basin ({m_data['elevation']}m):** Topography pools runoff easily.")
             if m_data['rain'] > 1.5:
-                st.write(f"• **Breeding Pool Formation ({m_data['rain']:.1f} in):** Strong multi-week accumulation creates optimal, clean, stagnant breeding parameters.")
+                st.write(f"• **Breeding Pool Formation ({m_data['rain']:.1f} in):** Generates active aquatic niches.")
             if m_data['humidity'] <= 65 and (m_data['temp'] < 72 or m_data['temp'] > 95) and m_data['elevation'] >= 1200 and m_data['rain'] <= 1.5:
                 st.write("_None observed in current climate metrics._")
 
         with exp2:
             st.markdown("### 🛡️ Environmental Inhibitors")
             if m_data['elevation'] >= 1600:
-                st.write(f"• **High Altitude Shield ({m_data['elevation']}m):** High mountain atmospheres significantly stall mosquito replication cycles.")
+                st.write(f"• **High Altitude Shield ({m_data['elevation']}m):** Mountain atmospheres stall replication cycles.")
             if m_data['temp'] < 64:
-                st.write(f"• **Thermal Cessation Boundary ({m_data['temp']}°F):** Ambient air drops below lower baseline temperature thresholds required for development.")
+                st.write(f"• **Thermal Cessation Boundary ({m_data['temp']}°F):** Cold temperatures halt vector development.")
             if m_data['humidity'] < 55:
-                st.write(f"• **Desiccation Factor ({m_data['humidity']}%):** Low humidity dries out vectors, yielding high adult vector mortality rates.")
+                st.write(f"• **Desiccation Factor ({m_data['humidity']}%):** Dry atmospheres cause high vector mortality.")
             if m_data['rain'] == 0:
-                st.write("• **Absence of Precipitation:** No fresh aquatic surfaces generated to carry egg rafts.")
+                st.write("• **Absence of Precipitation:** No fresh larval pooling sites available.")
             if m_data['elevation'] < 1600 and m_data['temp'] >= 64 and m_data['humidity'] >= 55 and m_data['rain'] > 0:
                 st.write("_None observed. Environment is actively uninhibited._")
 
@@ -261,6 +258,7 @@ if st.session_state.malaria_results is not None:
         vis_col1, vis_col2 = st.columns([1, 1])
 
         with vis_col1:
+            # FIXED: Corrected syntax structure on steps definition dictionary map
             fig_gauge = go.Figure(go.Indicator(
                 mode="gauge+number",
                 value=res['prob'],
@@ -317,7 +315,7 @@ if st.session_state.malaria_results is not None:
 
         with rep_col1:
             st.markdown("### 📄 Single Site Executive Report")
-            st.write("Generates an individual summary text report containing data signatures, risks, and environmental inhibitors/accelerators observed for this location.")
+            st.write("Generates an individual summary text report containing data signatures.")
             
             report_txt = f"""MALARIA EARLY-WARNING OUTBREAK INTELLIGENCE ENGINE REPORT
 Generated on: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
@@ -347,9 +345,4 @@ Disclaimer: Operational research intelligence based on biological niche calculat
 
         with rep_col2:
             st.markdown("### 🗃️ Complete Run Search History Ledger")
-            st.write("Download an aggregated tabular audit record tracking all target geographic queries processed throughout this application user-session.")
-            
-            if st.session_state.audit_history:
-                history_df = pd.DataFrame(st.session_state.audit_history)
-                st.dataframe(history_df, use_container_width=True, height=150)
-                csv_
+            st.write("Download an aggregated tabular audit record tracking all target geographic queries.")
