@@ -88,42 +88,33 @@ def get_live_weather_and_elevation(lat, lon):
 # 3. EMPIRICAL ENTOMOLOGICAL MODEL
 # ==========================================
 def calculate_real_transmission_risk(metrics):
-    """
-    Calculates transmission risk using real-world biological formulas.
-    Returns: (probability_score, prediction_verdict, feature_contributions)
-    """
+    """Calculates transmission risk using real-world biological formulas."""
     T = metrics['temp']
     R = metrics['rain']
     H = metrics['humidity']
     E = metrics['elevation']
 
     # 1. Temperature Suitability Score (Brière Thermal Curve Approximation)
-    # Peak suitability sits between 78°F and 86°F. Below 61°F and above 104°F, it drops to 0.
     if 61 <= T <= 104:
-        # Normalized parabolic shape approximating a biological performance curve
         t_score = 1.0 - (((T - 82) / 21) ** 2)
         t_score = max(0.0, min(1.0, t_score))
     else:
         t_score = 0.0
 
     # 2. Humidity Suitability Score (Sigmoidal Survival Envelope)
-    # Mosquito survival dropping drastically below 55% relative humidity.
     h_score = 1.0 / (1.0 + np.exp(-0.15 * (H - 60)))
     h_score = max(0.0, min(1.0, h_score))
 
     # 3. Rainfall Suitability Score (Hydrological Larval Pooling Formula)
-    # Peak pooling happens around 2 to 5 inches of 14-day rain accumulation.
-    # 0 inches means no pools. Over 9 inches flushes larvae away.
     if R == 0:
         r_score = 0.0
     elif R > 9.0:
-        r_score = 0.15  # Drastically reduced due to flooding flush
+        r_score = 0.15 
     else:
         r_score = 1.0 - (((R - 3.5) / 5.5) ** 2)
         r_score = max(0.0, min(1.0, r_score))
 
     # 4. Topographic Altitude Shielding Factor
-    # Above 1600 meters, mountain chill halts parasite incubation completely.
     if E >= 1600:
         e_factor = 0.05
     elif E <= 600:
@@ -133,7 +124,6 @@ def calculate_real_transmission_risk(metrics):
         e_factor = max(0.0, min(1.0, e_factor))
 
     # Calculate final weighted biological affinity index
-    # Weights match true field epidemiology importance profiles
     raw_affinity = (t_score * 0.35) + (h_score * 0.25) + (r_score * 0.25) + (e_factor * 0.15)
     probability_score = float(raw_affinity * 100)
 
@@ -147,7 +137,7 @@ def calculate_real_transmission_risk(metrics):
     else:
         prediction = 1 if probability_score >= 45.0 else 0
 
-    # Calculate dynamic relative contribution weights for the visualization graph
+    # Dynamic relative contribution weights for the visualization graph
     contributions = {
         'Temperature Performance': max(0.05, t_score * 0.35),
         'Precipitation Pooling': max(0.05, r_score * 0.25),
@@ -180,6 +170,12 @@ def log_to_history(name, address, lat, lon, metrics, prob, prediction):
 st.sidebar.header("📍 Vector Sentinel Hub")
 st.sidebar.write("Type your target country, state, or specific district below:")
 user_district = st.sidebar.text_input("District / Sub-County Name", value="Soroti, Uganda", key="malaria_input_box")
+
+# SAFE CHECK: Force recalculation if session state contains incomplete old definitions
+if st.session_state.malaria_results is not None:
+    if "contributions" not in st.session_state.malaria_results:
+        st.session_state.malaria_results = None
+        st.session_state.last_queried_district = ""
 
 if st.session_state.malaria_results is None or user_district != st.session_state.last_queried_district:
     with st.spinner(f"Analyzing regional wetland metrics for {user_district}..."):
