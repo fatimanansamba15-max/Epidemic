@@ -150,4 +150,4 @@ def run_risk_calculation(metrics):
 # 4. INTERFACE LAYOUT & ANALYSIS EXECUTION
 # ==========================================
 st.sidebar.header("📍 Vector Sentinel Hub")
-st.sidebar.write("Type your target country, state, or specific district
+st.sidebar.write("Type your target country, state, or specific district below:")
