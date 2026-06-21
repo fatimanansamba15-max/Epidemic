@@ -346,3 +346,50 @@ Disclaimer: Operational research intelligence based on biological niche calculat
         with rep_col2:
             st.markdown("### 🗃️ Complete Run Search History Ledger")
             st.write("Download an aggregated tabular audit record tracking all target geographic queries.")
+            
+            if st.session_state.audit_history:
+                history_df = pd.DataFrame(st.session_state.audit_history)
+                st.dataframe(history_df, use_container_width=True, height=150)
+                
+                # FIXED: Protected truncation variable name mapping complete buffer allocation
+                csv_buffer = history_df.to_csv(index=False).encode('utf-8')
+                st.download_button(
+                    label="📥 Download Session Audit History (.csv)",
+                    data=csv_buffer,
+                    file_name="Malaria_Outbreak_Session_Audit_Ledger.csv",
+                    mime="text/csv",
+                    use_container_width=True
+                )
+            else:
+                st.info("No query sessions recorded in the buffer ledger yet.")
+
+    # ------------------ TAB 4: MALARIA PREVENTION & CONTROL ------------------
+    with tab_prevention:
+        st.subheader("🛡️ Vector Control & Malaria Prevention Protocols")
+        st.write("Deploying tactical environmental workflows and individual barriers based on WHO-aligned standards.")
+        
+        if is_high_risk:
+            st.warning(f"⚠️ **Active Risk Guidance for {res['name']}:** High biological affinity detected! Immediate deployment of environmental controls, larviciding standing surface water, and community-wide bednet audits are highly recommended.")
+        else:
+            st.info(f"💡 **Active Risk Guidance for {res['name']}:** Low immediate ecosystem threat. Maintain baseline environmental tracking and seasonal source reductions.")
+            
+        st.markdown("---")
+        prev_col1, prev_col2 = st.columns(2)
+        
+        with prev_col1:
+            st.markdown("### 🏠 Personal & Household Protections")
+            st.markdown("""
+            * **Long-Lasting Insecticidal Nets (LLINs):** Sleep under factory-treated insecticidal mosquito bednets every night.
+            * **Indoor Residual Spraying (IRS):** Apply recommended long-lasting chemical insecticides to inside walls and ceilings.
+            * **Topical Repellents:** Apply spatial skin repellents containing active ingredients like DEET during peak vector biting hours.
+            * **Structural Screening:** Install tight wire mesh screens on house windows and doors.
+            """)
+            
+        with prev_col2:
+            st.markdown("### 🚜 Environmental & Community Management")
+            st.markdown("""
+            * **Source Reduction & Drainage:** Eliminate stagnant fresh-water pools, clear blocked roadside ditches, and drain puddles.
+            * **Biological Larviciding:** Apply regular targeted biological larvicides (such as Bti) into permanent wetland habitats.
+            * **Ecosystem Clearing:** Clear high weeds and thick bush cover away from residential boundaries.
+            * **Chemoprevention & Vaccination:** Coordinate execution of seasonal malaria chemoprevention protocols for vulnerable groups.
+            """)
