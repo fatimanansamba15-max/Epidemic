@@ -129,15 +129,20 @@ def run_risk_calculation(metrics):
         'Elevation': metrics['elevation']
     }])
 
+    # Calculate the core Machine Learning probability baseline
     probability_score = float(model.predict_proba(query_features)[0][1] * 100)
 
-    if metrics['humidity'] > 70.0 and metrics['elevation'] < 1200.0 and metrics['temp'] > 75.0 and metrics['rain'] > 0.2:
-        probability_score = max(probability_score, 75.0)
-        prediction = 1
-    elif metrics['elevation'] >= 1500.0 or metrics['temp'] < 60.0 or metrics['humidity'] < 50.0 or metrics['rain'] == 0:
-        probability_score = min(probability_score, 35.0)
+    # FIXED: Unified logic bounds so biological realities scale with the ML model outputs
+    if metrics['elevation'] >= 1500.0 or metrics['temp'] < 60.0 or metrics['humidity'] < 45.0:
+        # High altitude shield or severe dry cold environments crush transmission rates completely
+        probability_score = min(probability_score, 25.0)
         prediction = 0
+    elif metrics['humidity'] > 70.0 and metrics['elevation'] < 1200.0 and metrics['temp'] > 74.0 and metrics['rain'] > 0.1:
+        # Ideal hot, humid, low-lying basin conditions with active standing surface water runoff
+        probability_score = max(probability_score, 80.0)
+        prediction = 1
     else:
+        # Regular dynamic threshold assignment driven directly by the trained Random Forest classifier
         prediction = 1 if probability_score >= 50.0 else 0
         
     return probability_score, prediction
@@ -211,9 +216,9 @@ if st.session_state.malaria_results is not None:
                 st.write(f"• **Optimal Incubation Heat ({m_data['temp']}°F):** Provides perfect warmth for rapid larval development.")
             if m_data['elevation'] < 1200:
                 st.write(f"• **Low Altitude Basin ({m_data['elevation']}m):** Flat topography traps water runoff easily.")
-            if m_data['rain'] > 0.4:
+            if m_data['rain'] > 0.1:
                 st.write(f"• **Breeding Pool Formation ({m_data['rain']} in):** Creates optimal, clean, stagnant breeding parameters.")
-            if m_data['humidity'] <= 65 and (m_data['temp'] < 72 or m_data['temp'] > 95) and m_data['elevation'] >= 1200 and m_data['rain'] <= 0.4:
+            if m_data['humidity'] <= 65 and (m_data['temp'] < 72 or m_data['temp'] > 95) and m_data['elevation'] >= 1200 and m_data['rain'] <= 0.1:
                 st.write("_None observed in current climate metrics._")
 
         with exp2:
@@ -222,11 +227,11 @@ if st.session_state.malaria_results is not None:
                 st.write(f"• **High Altitude Shield ({m_data['elevation']}m):** High mountain atmospheres significantly stall mosquito replication cycles.")
             if m_data['temp'] < 64:
                 st.write(f"• **Thermal Cessation Boundary ({m_data['temp']}°F):** Ambient air drops below lower thresholds required for development.")
-            if m_data['humidity'] < 55:
+            if m_data['humidity'] < 50:
                 st.write(f"• **Desiccation Factor ({m_data['humidity']}%):** Low humidity dries out vectors, yielding high adult vector mortality rates.")
             if m_data['rain'] == 0:
                 st.write("• **Absence of Precipitation:** No fresh aquatic surfaces generated to carry egg rafts.")
-            if m_data['elevation'] < 1500 and m_data['temp'] >= 64 and m_data['humidity'] >= 55 and m_data['rain'] > 0:
+            if m_data['elevation'] < 1500 and m_data['temp'] >= 64 and m_data['humidity'] >= 50 and m_data['rain'] > 0:
                 st.write("_None observed. Environment is actively uninhibited._")
 
     # ------------------ TAB 2: VISUAL ANALYTICS ------------------
@@ -254,6 +259,7 @@ if st.session_state.malaria_results is not None:
                 }
             ))
             fig_gauge.update_layout(height=320, margin=dict(l=20, r=20, t=40, b=20))
+            st.sidebar.empty() # Simple formatting helper
             st.plotly_chart(fig_gauge, use_container_width=True)
 
             st.markdown("**Random Forest Classifier Feature Importances**")
