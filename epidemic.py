@@ -68,7 +68,8 @@ def get_district_coordinates(location_string):
 
 def get_live_weather_and_elevation(lat, lon):
     elev_url = f"https://api.open-meteo.com/v1/elevation?latitude={lat}&longitude={lon}"
-    weather_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,precipitation&temperature_unit=fahrenheit&precipitation_unit=inch"
+    # FIX: Swapped current hourly precipitation for daily precipitation sum to show true accumulation
+    weather_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m&daily=precipitation_sum&temperature_unit=fahrenheit&precipitation_unit=inch&timezone=auto"
     headers = {'User-Agent': 'MalariaOutbreakResearch/4.0'}
 
     try:
@@ -78,12 +79,15 @@ def get_live_weather_and_elevation(lat, lon):
         elevation_list = elev_res.get('elevation', [150.0])
         elevation = elevation_list[0] if isinstance(elevation_list, list) else elevation_list
         current_data = weather_res.get('current', {})
+        daily_data = weather_res.get('daily', {})
 
         if 'temperature_2m' in current_data:
+            # Extract the first entry from the daily precipitation array (today's cumulative total)
+            rain_sum = daily_data.get('precipitation_sum', [0.0])[0]
             return {
                 'temp': float(current_data['temperature_2m']),
                 'humidity': float(current_data['relative_humidity_2m']),
-                'rain': float(current_data.get('precipitation', 0.0)),
+                'rain': float(rain_sum) if rain_sum is not None else 0.0,
                 'elevation': float(elevation) if elevation is not None else 150.0
             }
         else:
@@ -147,7 +151,6 @@ st.sidebar.header("📍 Vector Sentinel Hub")
 st.sidebar.write("Type your target country, state, or specific district below:")
 user_district = st.sidebar.text_input("District / Sub-County Name", value="Soroti, Uganda", key="malaria_input_box")
 
-# Reactive Execution Flow: Triggers immediately if the query box changes or it's the first initialization load
 if st.session_state.malaria_results is None or user_district != st.session_state.last_queried_district:
     with st.spinner(f"Analyzing regional wetland metrics for {user_district}..."):
         lat, lon, full_address = get_district_coordinates(user_district)
