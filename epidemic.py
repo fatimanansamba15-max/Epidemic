@@ -204,12 +204,15 @@ def calculate_predictive_horizon_risk(df_climate, elevation):
             e_factor = 1.0 - ((elevation - 600.0) / 1000.0)
             
         raw_affinity = (t_score * 0.35) + (h_score * 0.25) + (r_score * 0.25) + (e_factor * 0.15)
-        risk_percentage = float(raw_affinity * 100.0)
         
+        # Risk scaled down uniformly to top out at 50%
+        risk_percentage = float(raw_affinity * 50.0)
+        
+        # Contextual floor constraints matched to natural weather buffers
         if elevation >= 1800.0 or T < 61.0 or H < 45.0:
-            risk_percentage = min(risk_percentage, 10.0)
+            risk_percentage = min(risk_percentage, 5.0)
         elif cumulative_rain == 0.0 and H < 52.0:
-            risk_percentage = min(risk_percentage, 12.0)
+            risk_percentage = min(risk_percentage, 6.0)
             
         timeline_records.append({
             'Date': target_date.strftime('%Y-%m-%d'),
@@ -307,6 +310,7 @@ if st.session_state.malaria_results is not None:
     ])
 
     # ------------------ TAB 1: SITE MONITORING SUMMARY ------------------
+    # The warning trigger baseline has been re-indexed to 24.0% since raw scale is cut by half.
     with tab_summary:
         st.markdown(f"<p style='color:#64748b;'>Spatial Grid Pins: Latitude {res['lat']:.4f} | Longitude {res['lon']:.4f}</p>", unsafe_allow_html=True)
         
@@ -324,7 +328,7 @@ if st.session_state.malaria_results is not None:
         st.markdown("<br>", unsafe_allow_html=True)
         st.subheader("Transmission Potential Assessment Summary")
         
-        if max_future_risk >= 48.0:
+        if max_future_risk >= 24.0:
             st.markdown(f"""
                 <div class="status-box" style="background-color: rgba(239, 68, 68, 0.08); border-left: 6px solid #ef4444;">
                     <h4 style="color: #b91c1c; margin-top: 0; font-weight:700;">🚨 CRITICAL OUTBREAK PREDICTION WARNING</h4>
@@ -347,22 +351,22 @@ if st.session_state.malaria_results is not None:
         fig_horizon.add_trace(go.Scatter(
             x=df_hz['Date'], y=df_hz['Outbreak Risk %'],
             mode='lines+markers', name='Projected Outbreak Index %',
-            line=dict(color='#ef4444' if max_future_risk >= 48.0 else '#22c55e', width=3),
+            line=dict(color='#ef4444' if max_future_risk >= 24.0 else '#22c55e', width=3),
             marker=dict(
                 size=8, 
                 color='white', 
                 line=dict(
                     width=2, 
-                    color='#ef4444' if max_future_risk >= 48.0 else '#22c55e'
+                    color='#ef4444' if max_future_risk >= 24.0 else '#22c55e'
                 )
             )
         ))
-        fig_horizon.add_hline(y=48.0, line_dash="dash", line_color="#f59e0b", annotation_text="Outbreak Trigger Baseline (48%)")
+        fig_horizon.add_hline(y=24.0, line_dash="dash", line_color="#f59e0b", annotation_text="Outbreak Trigger Baseline (24%)")
         
         fig_horizon.update_layout(
             paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(248,250,252,1)',
             xaxis_title="Timeline Window Matrix", yaxis_title="Outbreak Risk Index (%)",
-            yaxis=dict(range=[0, 105], gridcolor='#e2e8f0'), xaxis=dict(gridcolor='#e2e8f0'),
+            yaxis=dict(range=[0, 55], gridcolor='#e2e8f0'), xaxis=dict(gridcolor='#e2e8f0'),
             height=340, margin=dict(l=20, r=20, t=20, b=20), hovermode="x unified"
         )
         st.plotly_chart(fig_horizon, use_container_width=True)
@@ -389,7 +393,6 @@ if st.session_state.malaria_results is not None:
     with tab_prevention:
         st.subheader("📋 Malaria Recognition & Prevention Field Guide")
         
-        # Color-coded clinical cards with smooth typography styling
         st.subheader("💡 Clinical Signs & Symptoms of Malaria")
         sym_col1, sym_col2 = st.columns(2)
         
@@ -423,7 +426,6 @@ if st.session_state.malaria_results is not None:
             
         st.markdown("<br><hr><br>", unsafe_allow_html=True)
         
-        # Operational Mitigation Workflows Grid
         st.subheader("🛠️ Vector Control Mitigation Options")
         prev_col1, prev_col2 = st.columns(2)
         
